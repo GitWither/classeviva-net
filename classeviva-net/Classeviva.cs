@@ -105,6 +105,10 @@ namespace ClassevivaNet
             }
         }
 
+        /// <summary>
+        /// Gets the student's full name WARNING: This method is slower than the Name and the Surname properties, but is included for consisency
+        /// </summary>
+        /// <returns>A string containing the students full name</returns>
         public async Task<string> GetFullName()
         {
 
@@ -120,6 +124,35 @@ namespace ClassevivaNet
             {
                 throw new Exception("An error occurred");
             }
+        }
+
+        /// <summary>
+        /// Gets all the homework assigned within the DateTime range given
+        /// </summary>
+        /// <param name="startDate">Start date</param>
+        /// <param name="endDate">End date</param>
+        /// <returns>An array of homework objects</returns>
+        public async Task<Homework[]> GetHomework(DateTime startDate, DateTime endDate)
+        {
+            HttpResponseMessage msg = await http.GetAsync(
+                $"https://web.spaggiari.eu/fml/app/default/agenda_studenti.php?ope=get_events&classe_id=&gruppo_id=&start=" +
+                startDate.Subtract(new DateTime(1970, 1, 1)).TotalSeconds.ToString() + "&end=" +
+                endDate.Subtract(new DateTime(1970, 1, 1)).TotalSeconds.ToString());
+            HomeworkBody[] homeworkBody = JsonConvert.DeserializeObject<HomeworkBody[]>(await msg.Content.ReadAsStringAsync());
+            Homework[] homework = new Homework[ homeworkBody.Length ];
+            for (int i = 0; i < homeworkBody.Length; i++)
+            {
+                homework[ i ] = new Homework(
+                    homeworkBody[ i ].id,
+                    homeworkBody[ i ].title,
+                    DateTime.ParseExact(homeworkBody[ i ].start, "yyyy-MM-dd HH:mm:ss", null),
+                    DateTime.ParseExact(homeworkBody[ i ].end, "yyyy-MM-dd HH:mm:ss", null),
+                    homeworkBody[ i ].allDay,
+                    DateTime.ParseExact(homeworkBody[ i ].data_inserimento, "dd-MM-yyyy HH:mm:ss", null),
+                    homeworkBody[ i ].autore_desc,
+                    homeworkBody[ i ].nota_2);
+            }
+            return homework;
         }
     }
 }
