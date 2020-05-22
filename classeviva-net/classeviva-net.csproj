@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <RootNamespace>classeviva_net</RootNamespace>
+    <RootNamespace>ClassevivaNet</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
