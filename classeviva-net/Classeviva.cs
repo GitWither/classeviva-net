@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using ClassevivaNet.Internal;
 using System.Linq;
+using System.Security.Cryptography;
 
 namespace ClassevivaNet
 {
@@ -132,10 +133,63 @@ namespace ClassevivaNet
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(await msg.Content.ReadAsStringAsync());
             HtmlNode[] dataTableNodes = doc.GetElementbyId("data_table").ChildNodes.ToArray();
-            Console.WriteLine(dataTableNodes.Length);
             for (int i = 10; i < dataTableNodes.Length; i++)
             {
-                Console.WriteLine(dataTableNodes[i].GetClasses()?.ToArray()[0]);
+                bool isTitle = 
+                    dataTableNodes[i].GetAttributeValue("align", "none") == "center" && 
+                    dataTableNodes[i].GetAttributeValue("height", "none") == "38" && 
+                    !dataTableNodes[i].HasClass("griglia");
+                bool isGradeObject =
+                    dataTableNodes[i].ChildNodes.Count > 0 &&
+                    dataTableNodes[i].Attributes.Count == 0;
+
+                if (isTitle)
+                {
+                    Console.WriteLine(dataTableNodes[i].InnerText);
+                }
+                if (isGradeObject)
+                {
+                    //Console.WriteLine(dataTableNodes[i].InnerHtml);
+                    foreach (HtmlNode node in dataTableNodes[i].ChildNodes)
+                    {
+                        foreach (HtmlNode subNode in node.ChildNodes)
+                        {
+                            bool isDate =
+                                node.GetAttributeValue("colspan", "none") == "6" &&
+                                subNode.Attributes.Count == 1;
+                            bool isType =
+                                node.GetAttributeValue("colspan", "none") == "5";
+                            bool isGrade =
+                                node.GetAttributeValue("colspan", "none") == "2" &&
+                                node.HasClass("voto_");
+                            bool isComment =
+                                node.GetAttributeValue("colspan", "none") == "32" &&
+                                node.HasClass("handwriting") &&
+                                node.HasClass("graytext") &&
+                                node.ChildNodes.Count > 0;
+                            if (isDate)
+                            {
+                                Console.WriteLine(subNode.InnerText);
+                            }
+                            if (isType)
+                            {
+                                Console.WriteLine(subNode.InnerText);
+                            }
+                            if (isGrade)
+                            {
+                                Console.WriteLine(subNode.InnerText);
+                            }
+                            if (isComment)
+                            {
+                                Console.WriteLine(subNode.InnerText);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    //Console.WriteLine(dataTableNodes[i].XPath);
+                }
             }
         }
 
