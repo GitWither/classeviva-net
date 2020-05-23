@@ -8,7 +8,7 @@ namespace ClassevivaNet
     {
         public double Value { get; }
 
-        public NumericGrade(double value, string comment, DateTime date, string type) : base(comment, date, type)
+        public NumericGrade(double value, string comment, DateTime date, string subject, string type) : base(comment, date, subject, type)
         {
             Value = value;
         }

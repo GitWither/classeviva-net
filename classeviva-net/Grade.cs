@@ -6,14 +6,16 @@ namespace ClassevivaNet
 {
     public class Grade
     {
-        public DateTime Date { get; }
         public string Comment { get; }
+        public DateTime Date { get; }
+        public string Subject { get; }
         public string Type { get; }
 
-        public Grade (string comment, DateTime date, string type)
+        public Grade (string comment, DateTime date, string subject, string type)
         {
             Comment = comment;
             Date = date;
+            Subject = subject;
             Type = type;
         }
     }
