@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using ClassevivaNet.Internal;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 
 namespace ClassevivaNet
 {
@@ -127,14 +128,21 @@ namespace ClassevivaNet
             }
         }
 
-        public async Task GetGrades()
+        /// <summary>
+        /// Gets the student's full grade history
+        /// </summary>
+        /// <returns>An array of Grade objects that contain grade data</returns>
+        public async Task<Grade[]> GetGradesAsync()
         {
             HttpResponseMessage msg = await http.GetAsync("https://web.spaggiari.eu/cvv/app/default/genitori_note.php?filtro=tutto");
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(await msg.Content.ReadAsStringAsync());
             HtmlNode[] dataTableNodes = doc.GetElementbyId("data_table").ChildNodes.ToArray();
+            List<Grade> grades = new List<Grade>();
+            string currentSubject = string.Empty;
             for (int i = 10; i < dataTableNodes.Length; i++)
             {
+
                 bool isTitle = 
                     dataTableNodes[i].GetAttributeValue("align", "none") == "center" && 
                     dataTableNodes[i].GetAttributeValue("height", "none") == "38" && 
@@ -143,54 +151,63 @@ namespace ClassevivaNet
                     dataTableNodes[i].ChildNodes.Count > 0 &&
                     dataTableNodes[i].Attributes.Count == 0;
 
-                if (isTitle)
+                if (isTitle && currentSubject != dataTableNodes[i].InnerText)
                 {
-                    Console.WriteLine(dataTableNodes[i].InnerText);
+                    currentSubject = dataTableNodes[i].InnerText.Trim();
                 }
-                if (isGradeObject)
+                else if (isGradeObject)
                 {
-                    //Console.WriteLine(dataTableNodes[i].InnerHtml);
+                    DateTime date = DateTime.MinValue;
+                    string comment = string.Empty;
+                    string type = string.Empty;
+                    string stringGrade = string.Empty;
                     foreach (HtmlNode node in dataTableNodes[i].ChildNodes)
                     {
-                        foreach (HtmlNode subNode in node.ChildNodes)
+                        bool isDate =
+                            node.GetAttributeValue("colspan", "none") == "6";
+                        bool isType =
+                            node.GetAttributeValue("colspan", "none") == "5";
+                        bool isGrade =
+                            node.GetAttributeValue("colspan", "none") == "2" &&
+                            node.HasClass("voto_");
+                        bool isComment =
+                            node.GetAttributeValue("colspan", "none") == "32" &&
+                            node.HasClass("handwriting") &&
+                            node.HasClass("graytext") &&
+                            node.ChildNodes.Count > 0;
+                        if (isDate)
                         {
-                            bool isDate =
-                                node.GetAttributeValue("colspan", "none") == "6" &&
-                                subNode.Attributes.Count == 1;
-                            bool isType =
-                                node.GetAttributeValue("colspan", "none") == "5";
-                            bool isGrade =
-                                node.GetAttributeValue("colspan", "none") == "2" &&
-                                node.HasClass("voto_");
-                            bool isComment =
-                                node.GetAttributeValue("colspan", "none") == "32" &&
-                                node.HasClass("handwriting") &&
-                                node.HasClass("graytext") &&
-                                node.ChildNodes.Count > 0;
-                            if (isDate)
-                            {
-                                Console.WriteLine(subNode.InnerText);
-                            }
-                            if (isType)
-                            {
-                                Console.WriteLine(subNode.InnerText);
-                            }
-                            if (isGrade)
-                            {
-                                Console.WriteLine(subNode.InnerText);
-                            }
-                            if (isComment)
-                            {
-                                Console.WriteLine(subNode.InnerText);
-                            }
+                            date = DateTime.ParseExact(node.InnerText.Trim(), "dd/MM/yyyy", null);
+                        }
+                        else if (isType)
+                        {
+                            type = node.InnerText.Trim() ;
+                        }
+                        else if (isComment)
+                        {
+                            string temp = node.InnerText.Trim();
+                            comment = temp;
+                        }
+                        else if (isGrade)
+                        {
+                            stringGrade = node.InnerText.Trim().Replace("½", ".5").Replace(",", ".").Replace(" ", "");
+                        }
+                    }
+
+                    if (date != DateTime.MinValue && stringGrade != string.Empty && currentSubject != string.Empty)
+                    {
+                        if (double.TryParse(stringGrade, out double numberGrade))
+                        {
+                            grades.Add(new NumericGrade(numberGrade, comment, date, currentSubject, type));
+                        }
+                        else
+                        {
+                            grades.Add(new TextGrade(stringGrade, comment, date, currentSubject, type));
                         }
                     }
                 }
-                else
-                {
-                    //Console.WriteLine(dataTableNodes[i].XPath);
-                }
             }
+            return grades.ToArray();
         }
 
         /// <summary>
