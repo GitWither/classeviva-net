@@ -161,6 +161,7 @@ namespace ClassevivaNet
                     string comment = string.Empty;
                     string type = string.Empty;
                     string stringGrade = string.Empty;
+                    bool countsTowardsAverage = true;
                     foreach (HtmlNode node in dataTableNodes[i].ChildNodes)
                     {
                         bool isDate =
@@ -190,6 +191,7 @@ namespace ClassevivaNet
                         }
                         else if (isGrade)
                         {
+                            countsTowardsAverage = !node.ChildNodes[1].HasClass("f_reg_voto_dettaglio");
                             stringGrade = node.InnerText.Trim().Replace("½", ".5").Replace(",", ".").Replace(" ", "");
                         }
                     }
@@ -198,11 +200,11 @@ namespace ClassevivaNet
                     {
                         if (double.TryParse(stringGrade, out double numberGrade))
                         {
-                            grades.Add(new NumericGrade(numberGrade, comment, date, currentSubject, type));
+                            grades.Add(new NumericGrade(numberGrade, comment, date, currentSubject, type, countsTowardsAverage));
                         }
                         else
                         {
-                            grades.Add(new TextGrade(stringGrade, comment, date, currentSubject, type));
+                            grades.Add(new TextGrade(stringGrade, comment, date, currentSubject, type, countsTowardsAverage));
                         }
                     }
                 }
