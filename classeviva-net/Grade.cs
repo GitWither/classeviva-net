@@ -18,5 +18,10 @@ namespace ClassevivaNet
             Subject = subject;
             Type = type;
         }
+
+        public virtual string GetGradeString()
+        {
+            return string.Empty;
+        }
     }
 }

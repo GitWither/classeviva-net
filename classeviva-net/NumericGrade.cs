@@ -12,5 +12,10 @@ namespace ClassevivaNet
         {
             Value = value;
         }
+
+        public override string GetGradeString()
+        {
+            return Value.ToString();
+        }
     }
 }
