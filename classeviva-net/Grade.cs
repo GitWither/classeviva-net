@@ -10,13 +10,15 @@ namespace ClassevivaNet
         public DateTime Date { get; }
         public string Subject { get; }
         public string Type { get; }
+        public bool CountsTowardsAverage { get; }
 
-        public Grade (string comment, DateTime date, string subject, string type)
+        public Grade (string comment, DateTime date, string subject, string type, bool countsTowardsAverage)
         {
             Comment = comment;
             Date = date;
             Subject = subject;
             Type = type;
+            CountsTowardsAverage = countsTowardsAverage;
         }
 
         public virtual string GetGradeString()
