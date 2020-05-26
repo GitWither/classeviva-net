@@ -4,7 +4,7 @@ using System.Text;
 
 namespace ClassevivaNet
 {
-    class MaterialFile
+    public class MaterialFile
     {
         public string Author { get; }
         public string Description { get; }
