@@ -212,6 +212,52 @@ namespace ClassevivaNet
             return grades.ToArray();
         }
 
+        public async Task<MaterialFile[]> GetFiles()
+        {
+            HttpResponseMessage msg = await http.GetAsync("https://web.spaggiari.eu/fml/app/default/didattica_genitori.php");
+            HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(await msg.Content.ReadAsStringAsync());
+            HtmlNode[] dataTableNodes = doc.GetElementbyId("data_table").ChildNodes.ToArray();
+            List<MaterialFile> files = new List<MaterialFile>();
+            string currentAuthor = string.Empty;
+            for (int i = 10; i < dataTableNodes.Length; i++)
+            {
+                bool isFileNode =
+                    dataTableNodes[i].HasClass("row") &&
+                    dataTableNodes[i].HasClass("contenuto");
+
+                bool isAuthor =
+                    dataTableNodes[i].GetAttributeValue("style", "none") == "height: 40px;";
+
+                if (isAuthor)
+                {
+                    foreach (HtmlNode node in dataTableNodes[i].ChildNodes)
+                    {
+                        bool isAuthorNode =
+                            node.GetAttributeValue("colspan", "none") == "12";
+
+                        if (isAuthorNode)
+                        {
+                            currentAuthor = node.InnerText.Trim();
+                            Console.WriteLine(currentAuthor);
+                        }
+                    }
+                }
+
+                if (isFileNode)
+                {
+                    string author = string.Empty;
+                    string description = string.Empty;
+                    string link = string.Empty;
+                    DateTime date = DateTime.MinValue;
+                    foreach (HtmlNode node in dataTableNodes[i].ChildNodes)
+                    {
+                    }
+                }
+            }
+            return files.ToArray();
+        }
+
         /// <summary>
         /// Gets all the homework assigned within the DateTime range given
         /// </summary>
