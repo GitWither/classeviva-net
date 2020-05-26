@@ -73,7 +73,7 @@ namespace ClassevivaNet
             {
                 if (body.data.auth.loggedIn && body.data.auth.verified)
                 {
-                    return new Classeviva(cookies[ 1 ].Substring(10, 32), body);
+                    return new Classeviva(cookies[1].Substring(10, 32), body);
                 }
                 else
                 {
@@ -96,7 +96,7 @@ namespace ClassevivaNet
             HttpResponseMessage msg = await http.GetAsync("https://web.spaggiari.eu/home/app/default/menu_webinfoschool_genitori.php");
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(await msg.Content.ReadAsStringAsync());
-            string school = doc.DocumentNode.SelectNodes("//span[@class='scuola']")[ 0 ].InnerText;
+            string school = doc.DocumentNode.SelectNodes("//span[@class='scuola']")[0].InnerText;
             if (school.Length > 0)
             {
                 return school;
@@ -117,7 +117,7 @@ namespace ClassevivaNet
             HttpResponseMessage msg = await http.GetAsync("https://web.spaggiari.eu/home/app/default/menu_webinfoschool_genitori.php");
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(await msg.Content.ReadAsStringAsync());
-            string school = doc.DocumentNode.SelectNodes("//span[@class='name']")[ 0 ].InnerText;
+            string school = doc.DocumentNode.SelectNodes("//span[@class='name']")[0].InnerText;
             if (school.Length > 0)
             {
                 return school;
@@ -143,9 +143,9 @@ namespace ClassevivaNet
             for (int i = 10; i < dataTableNodes.Length; i++)
             {
 
-                bool isTitle = 
-                    dataTableNodes[i].GetAttributeValue("align", "none") == "center" && 
-                    dataTableNodes[i].GetAttributeValue("height", "none") == "38" && 
+                bool isTitle =
+                    dataTableNodes[i].GetAttributeValue("align", "none") == "center" &&
+                    dataTableNodes[i].GetAttributeValue("height", "none") == "38" &&
                     !dataTableNodes[i].HasClass("griglia");
                 bool isGradeObject =
                     dataTableNodes[i].ChildNodes.Count > 0 &&
@@ -182,7 +182,7 @@ namespace ClassevivaNet
                         }
                         else if (isType)
                         {
-                            type = node.InnerText.Trim() ;
+                            type = node.InnerText.Trim();
                         }
                         else if (isComment)
                         {
