@@ -246,12 +246,35 @@ namespace ClassevivaNet
 
                 if (isFileNode)
                 {
-                    string author = string.Empty;
                     string description = string.Empty;
                     string link = string.Empty;
                     DateTime date = DateTime.MinValue;
                     foreach (HtmlNode node in dataTableNodes[i].ChildNodes)
                     {
+                        bool isContent =
+                            node.GetAttributeValue("colspan", "none") == "36" &&
+                            node.HasClass("contenuto_desc");
+
+                        if (isContent)
+                        {
+                            foreach (HtmlNode subNode in node.ChildNodes[1].ChildNodes) {
+                                bool isDescription =
+                                    subNode.HasClass("row_contenuto_desc") &&
+                                    subNode.HasClass("font_size_16");
+                                bool isDate =
+                                    !subNode.HasClass("row_contenuto_desc") &&
+                                    subNode.HasClass("font_size_9");
+
+                                if (isDescription)
+                                {
+                                    description = subNode.InnerText.Trim();
+                                }
+                                if (isDate)
+                                {
+                                    date = DateTime.ParseExact(subNode.InnerText.Replace("condiviso il: ", "").Trim(), "dd-MM-yyyy HH:mm:ss", null);
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -288,4 +311,3 @@ namespace ClassevivaNet
         }
     }
 }
-
