@@ -11,8 +11,8 @@ namespace ClassevivaNet
 {
     public class Classeviva
     {
-        private HttpClient http = new HttpClient();
-        private ResponseBody responseBody;
+        private HttpClient _http = new HttpClient();
+        private ResponseBody _responseBody;
 
         /// <summary>
         /// The student's name
@@ -21,7 +21,7 @@ namespace ClassevivaNet
         {
             get
             {
-                return responseBody.data.auth.accountInfo.name;
+                return _responseBody.data.auth.accountInfo.name;
             }
         }
 
@@ -32,18 +32,17 @@ namespace ClassevivaNet
         {
             get
             {
-                return responseBody.data.auth.accountInfo.surname;
+                return _responseBody.data.auth.accountInfo.surname;
             }
         }
 
         private Classeviva(string cookieString, ResponseBody responseBody)
         {
-            this.cookieString = cookieString;
-            this.responseBody = responseBody;
+            this._responseBody = responseBody;
 
-            http.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36");
-            http.DefaultRequestHeaders.Add("Set-Cookie", $"PHPSESSID={cookieString}");
-            http.DefaultRequestHeaders.Add("Cookie", $"PHPSESSID={cookieString}");
+            _http.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36");
+            _http.DefaultRequestHeaders.Add("Set-Cookie", $"PHPSESSID={cookieString}");
+            _http.DefaultRequestHeaders.Add("Cookie", $"PHPSESSID={cookieString}");
         }
 
         /// <summary>
@@ -89,7 +88,7 @@ namespace ClassevivaNet
         public async Task<string> GetSchoolAsync()
         {
 
-            HttpResponseMessage msg = await http.GetAsync("https://web.spaggiari.eu/home/app/default/menu_webinfoschool_genitori.php");
+            HttpResponseMessage msg = await _http.GetAsync("https://web.spaggiari.eu/home/app/default/menu_webinfoschool_genitori.php");
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(await msg.Content.ReadAsStringAsync());
             string school = doc.DocumentNode.SelectNodes("//span[@class='scuola']")[0].InnerText;
@@ -110,7 +109,7 @@ namespace ClassevivaNet
         public async Task<string> GetFullNameAsync()
         {
 
-            HttpResponseMessage msg = await http.GetAsync("https://web.spaggiari.eu/home/app/default/menu_webinfoschool_genitori.php");
+            HttpResponseMessage msg = await _http.GetAsync("https://web.spaggiari.eu/home/app/default/menu_webinfoschool_genitori.php");
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(await msg.Content.ReadAsStringAsync());
             string school = doc.DocumentNode.SelectNodes("//span[@class='name']")[0].InnerText;
@@ -130,7 +129,7 @@ namespace ClassevivaNet
         /// <returns>An array of Grade objects that contain grade data</returns>
         public async Task<Grade[]> GetGradesAsync()
         {
-            HttpResponseMessage msg = await http.GetAsync("https://web.spaggiari.eu/cvv/app/default/genitori_note.php?filtro=tutto");
+            HttpResponseMessage msg = await _http.GetAsync("https://web.spaggiari.eu/cvv/app/default/genitori_note.php?filtro=tutto");
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(await msg.Content.ReadAsStringAsync());
             HtmlNode[] dataTableNodes = doc.GetElementbyId("data_table").ChildNodes.ToArray();
@@ -214,7 +213,7 @@ namespace ClassevivaNet
         /// <returns>An array of MaterialFile objects that contain all the file data</returns>
         public async Task<MaterialFile[]> GetFilesAsync()
         {
-            HttpResponseMessage msg = await http.GetAsync("https://web.spaggiari.eu/fml/app/default/didattica_genitori.php");
+            HttpResponseMessage msg = await _http.GetAsync("https://web.spaggiari.eu/fml/app/default/didattica_genitori.php");
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(await msg.Content.ReadAsStringAsync());
             HtmlNode[] dataTableNodes = doc.GetElementbyId("data_table").ChildNodes.ToArray();
@@ -328,7 +327,7 @@ namespace ClassevivaNet
         /// <returns>An array of homework objects</returns>
         public async Task<Homework[]> GetHomeworkAsync(DateTime startDate, DateTime endDate)
         {
-            HttpResponseMessage msg = await http.GetAsync(
+            HttpResponseMessage msg = await _http.GetAsync(
                 $"https://web.spaggiari.eu/fml/app/default/agenda_studenti.php?ope=get_events&classe_id=&gruppo_id=&start=" +
                 startDate.Subtract(new DateTime(1970, 1, 1)).TotalSeconds.ToString() + "&end=" +
                 endDate.Subtract(new DateTime(1970, 1, 1)).TotalSeconds.ToString());
