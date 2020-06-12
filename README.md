@@ -209,15 +209,15 @@ foreach (MaterialFile file in files)
 
 # Practical Example
 ```cs
-        Classeviva cs = await Classeviva.LoginAsync("foo", "bar");
-        Console.WriteLine(cs.Name);
-        Console.WriteLine(cs.Surname);
-        Console.WriteLine(await cs.GetSchoolAsync());
-        Console.WriteLine(await cs.GetFullNameAsync());
-        Console.WriteLine((await cs.GetHomeworkAsync(new DateTime(2019, 9, 1), DateTime.Now))[1].Id);
-        MaterialFile[] files = await cs.GetFilesAsync();
-        foreach (MaterialFile file in files)
-        {
-            Console.WriteLine(file.RootFolder);
-        }
+Classeviva cs = await Classeviva.LoginAsync("foo", "bar");
+Console.WriteLine(cs.Name);
+Console.WriteLine(cs.Surname);
+Console.WriteLine(await cs.GetSchoolAsync());
+Console.WriteLine(await cs.GetFullNameAsync());
+Console.WriteLine((await cs.GetHomeworkAsync(new DateTime(2019, 9, 1), DateTime.Now))[1].Id);
+MaterialFile[] files = await cs.GetFilesAsync();
+foreach (MaterialFile file in files)
+{
+    Console.WriteLine(file.RootFolder);
+}
 ```
