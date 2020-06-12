@@ -19,6 +19,10 @@ namespace ClassevivaNet
             CountsTowardsAverage = countsTowardsAverage;
         }
 
+        /// <summary>
+        /// Gets the string version of a grade
+        /// </summary>
+        /// <returns>A stringified version of the grade</returns>
         public virtual string GetGradeString()
         {
             return string.Empty;
