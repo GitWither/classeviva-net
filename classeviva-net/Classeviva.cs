@@ -213,7 +213,7 @@ namespace ClassevivaNet
         /// Returns all the student's school material files
         /// </summary>
         /// <returns>An array of MaterialFile objects that contain all the file data</returns>
-        public async Task<MaterialFile[]> GetFiles()
+        public async Task<MaterialFile[]> GetFilesAsync()
         {
             HttpResponseMessage msg = await http.GetAsync("https://web.spaggiari.eu/fml/app/default/didattica_genitori.php");
             HtmlDocument doc = new HtmlDocument();
