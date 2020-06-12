@@ -73,7 +73,7 @@ namespace ClassevivaNet
             {
                 if (body.data.auth.loggedIn && body.data.auth.verified)
                 {
-                    return new Classeviva(cookies[ 1 ].Substring(10, 32), body);
+                    return new Classeviva(cookies[1].Substring(10, 32), body);
                 }
                 else
                 {
@@ -96,7 +96,7 @@ namespace ClassevivaNet
             HttpResponseMessage msg = await http.GetAsync("https://web.spaggiari.eu/home/app/default/menu_webinfoschool_genitori.php");
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(await msg.Content.ReadAsStringAsync());
-            string school = doc.DocumentNode.SelectNodes("//span[@class='scuola']")[ 0 ].InnerText;
+            string school = doc.DocumentNode.SelectNodes("//span[@class='scuola']")[0].InnerText;
             if (school.Length > 0)
             {
                 return school;
@@ -117,7 +117,7 @@ namespace ClassevivaNet
             HttpResponseMessage msg = await http.GetAsync("https://web.spaggiari.eu/home/app/default/menu_webinfoschool_genitori.php");
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(await msg.Content.ReadAsStringAsync());
-            string school = doc.DocumentNode.SelectNodes("//span[@class='name']")[ 0 ].InnerText;
+            string school = doc.DocumentNode.SelectNodes("//span[@class='name']")[0].InnerText;
             if (school.Length > 0)
             {
                 return school;
@@ -143,9 +143,9 @@ namespace ClassevivaNet
             for (int i = 10; i < dataTableNodes.Length; i++)
             {
 
-                bool isTitle = 
-                    dataTableNodes[i].GetAttributeValue("align", "none") == "center" && 
-                    dataTableNodes[i].GetAttributeValue("height", "none") == "38" && 
+                bool isTitle =
+                    dataTableNodes[i].GetAttributeValue("align", "none") == "center" &&
+                    dataTableNodes[i].GetAttributeValue("height", "none") == "38" &&
                     !dataTableNodes[i].HasClass("griglia");
                 bool isGradeObject =
                     dataTableNodes[i].ChildNodes.Count > 0 &&
@@ -182,7 +182,7 @@ namespace ClassevivaNet
                         }
                         else if (isType)
                         {
-                            type = node.InnerText.Trim() ;
+                            type = node.InnerText.Trim();
                         }
                         else if (isComment)
                         {
@@ -210,6 +210,114 @@ namespace ClassevivaNet
                 }
             }
             return grades.ToArray();
+        }
+
+        public async Task<MaterialFile[]> GetFiles()
+        {
+            HttpResponseMessage msg = await http.GetAsync("https://web.spaggiari.eu/fml/app/default/didattica_genitori.php");
+            HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(await msg.Content.ReadAsStringAsync());
+            HtmlNode[] dataTableNodes = doc.GetElementbyId("data_table").ChildNodes.ToArray();
+            List<MaterialFile> files = new List<MaterialFile>();
+            string currentAuthor = string.Empty;
+            string currentFolder = string.Empty;
+            for (int i = 10; i < dataTableNodes.Length; i++)
+            {
+                bool isFileNode =
+                    dataTableNodes[i].HasClass("row") &&
+                    dataTableNodes[i].HasClass("contenuto");
+
+                bool isFolder =
+                    dataTableNodes[i].HasClass("row") &&
+                    dataTableNodes[i].HasClass("row_parent");
+
+                bool isAuthor =
+                    dataTableNodes[i].GetAttributeValue("style", "none") == "height: 40px;";
+
+
+                if (isAuthor)
+                {
+                    foreach (HtmlNode node in dataTableNodes[i].ChildNodes)
+                    {
+                        bool isAuthorNode =
+                            node.GetAttributeValue("colspan", "none") == "12";
+
+                        if (isAuthorNode)
+                        {
+                            currentAuthor = node.InnerText.Trim();
+                        }
+                    }
+                }
+
+                if (isFolder)
+                {
+                    foreach (HtmlNode node in dataTableNodes[i].ChildNodes)
+                    {
+                        bool isFolderNode =
+                            node.GetAttributeValue("colspan", "none") == "44" &&
+                            node.HasClass("folder");
+                        if (isFolderNode)
+                        {
+                            currentFolder = node.ChildNodes[0].InnerText.Trim();
+                        }
+                    }
+                }
+
+                if (isFileNode)
+                {
+                    string description = string.Empty;
+                    string link = string.Empty;
+                    MaterialFileType materialFileType = MaterialFileType.File;
+                    DateTime date = DateTime.MinValue;
+                    foreach (HtmlNode node in dataTableNodes[i].ChildNodes)
+                    {
+                        bool isContent =
+                            node.GetAttributeValue("colspan", "none") == "36" &&
+                            node.HasClass("contenuto_desc");
+                        bool isButton =
+                            node.GetAttributeValue("colspan", "none") == "4" &&
+                            node.HasClass("contenuto_action");
+
+                        if (isContent)
+                        {
+                            foreach (HtmlNode subNode in node.ChildNodes[1].ChildNodes) {
+                                bool isDescription =
+                                    subNode.HasClass("row_contenuto_desc") &&
+                                    subNode.HasClass("font_size_16");
+                                bool isDate =
+                                    !subNode.HasClass("row_contenuto_desc") &&
+                                    subNode.HasClass("font_size_9");
+
+                                if (isDescription)
+                                {
+                                    description = subNode.InnerText.Trim();
+                                }
+                                if (isDate)
+                                {
+                                    date = DateTime.ParseExact(subNode.InnerText.Replace("condiviso il: ", "").Trim(), "dd-MM-yyyy HH:mm:ss", null);
+                                }
+                            }
+                        }
+                        if (isButton)
+                        {
+                            bool isLink = node.ChildNodes[1].HasClass("action_link");
+                            bool isFile = node.ChildNodes[1].HasClass("action_download");
+                            if (isLink)
+                            {
+                                link = node.ChildNodes[1].GetAttributeValue("ref", "none");
+                                materialFileType = MaterialFileType.Link;
+                            }
+                            if (isFile)
+                            {
+                                link = $"https://web.spaggiari.eu/fml/app/default/didattica_genitori.php?a=downloadContenuto&contenuto_id={node.ChildNodes[1].GetAttributeValue("contenuto_id", "none")}&cksum={node.ChildNodes[1].GetAttributeValue("cksum", "none")}";
+                                materialFileType = MaterialFileType.File;
+                            }
+                        }
+                    }
+                    files.Add(new MaterialFile(currentAuthor, description, link, currentFolder, materialFileType, date));
+                }
+            }
+            return files.ToArray();
         }
 
         /// <summary>
@@ -242,4 +350,3 @@ namespace ClassevivaNet
         }
     }
 }
-
