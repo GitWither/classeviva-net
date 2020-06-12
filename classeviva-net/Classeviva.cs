@@ -220,14 +220,20 @@ namespace ClassevivaNet
             HtmlNode[] dataTableNodes = doc.GetElementbyId("data_table").ChildNodes.ToArray();
             List<MaterialFile> files = new List<MaterialFile>();
             string currentAuthor = string.Empty;
+            string currentFolder = string.Empty;
             for (int i = 10; i < dataTableNodes.Length; i++)
             {
                 bool isFileNode =
                     dataTableNodes[i].HasClass("row") &&
                     dataTableNodes[i].HasClass("contenuto");
 
+                bool isFolder =
+                    dataTableNodes[i].HasClass("row") &&
+                    dataTableNodes[i].HasClass("row_parent");
+
                 bool isAuthor =
                     dataTableNodes[i].GetAttributeValue("style", "none") == "height: 40px;";
+
 
                 if (isAuthor)
                 {
@@ -239,7 +245,20 @@ namespace ClassevivaNet
                         if (isAuthorNode)
                         {
                             currentAuthor = node.InnerText.Trim();
-                            Console.WriteLine(currentAuthor);
+                        }
+                    }
+                }
+
+                if (isFolder)
+                {
+                    foreach (HtmlNode node in dataTableNodes[i].ChildNodes)
+                    {
+                        bool isFolderNode =
+                            node.GetAttributeValue("colspan", "none") == "44" &&
+                            node.HasClass("folder");
+                        if (isFolderNode)
+                        {
+                            currentFolder = node.ChildNodes[0].InnerText.Trim();
                         }
                     }
                 }
@@ -248,12 +267,16 @@ namespace ClassevivaNet
                 {
                     string description = string.Empty;
                     string link = string.Empty;
+                    MaterialFileType materialFileType = MaterialFileType.File;
                     DateTime date = DateTime.MinValue;
                     foreach (HtmlNode node in dataTableNodes[i].ChildNodes)
                     {
                         bool isContent =
                             node.GetAttributeValue("colspan", "none") == "36" &&
                             node.HasClass("contenuto_desc");
+                        bool isButton =
+                            node.GetAttributeValue("colspan", "none") == "4" &&
+                            node.HasClass("contenuto_action");
 
                         if (isContent)
                         {
@@ -275,7 +298,23 @@ namespace ClassevivaNet
                                 }
                             }
                         }
+                        if (isButton)
+                        {
+                            bool isLink = node.ChildNodes[1].HasClass("action_link");
+                            bool isFile = node.ChildNodes[1].HasClass("action_download");
+                            if (isLink)
+                            {
+                                link = node.ChildNodes[1].GetAttributeValue("ref", "none");
+                                materialFileType = MaterialFileType.Link;
+                            }
+                            if (isFile)
+                            {
+                                link = $"https://web.spaggiari.eu/fml/app/default/didattica_genitori.php?a=downloadContenuto&contenuto_id={node.ChildNodes[1].GetAttributeValue("contenuto_id", "none")}&cksum={node.ChildNodes[1].GetAttributeValue("cksum", "none")}";
+                                materialFileType = MaterialFileType.File;
+                            }
+                        }
                     }
+                    files.Add(new MaterialFile(currentAuthor, description, link, currentFolder, materialFileType, date));
                 }
             }
             return files.ToArray();
