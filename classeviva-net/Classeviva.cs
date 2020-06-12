@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
 using HtmlAgilityPack;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using ClassevivaNet.Internal;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text.RegularExpressions;
 
 namespace ClassevivaNet
 {

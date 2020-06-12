@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ClassevivaNet.Internal
+﻿namespace ClassevivaNet.Internal
 {
     internal struct HomeworkBody
     {
