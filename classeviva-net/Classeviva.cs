@@ -12,7 +12,6 @@ namespace ClassevivaNet
     public class Classeviva
     {
         private HttpClient http = new HttpClient();
-        private string cookieString;
         private ResponseBody responseBody;
 
         /// <summary>
