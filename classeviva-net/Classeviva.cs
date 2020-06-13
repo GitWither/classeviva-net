@@ -332,20 +332,24 @@ namespace ClassevivaNet
                 startDate.Subtract(new DateTime(1970, 1, 1)).TotalSeconds.ToString() + "&end=" +
                 endDate.Subtract(new DateTime(1970, 1, 1)).TotalSeconds.ToString());
             HomeworkBody[] homeworkBody = JsonConvert.DeserializeObject<HomeworkBody[]>(await msg.Content.ReadAsStringAsync());
-            Homework[] homework = new Homework[ homeworkBody.Length ];
-            for (int i = 0; i < homeworkBody.Length; i++)
+            if (homeworkBody != null)
             {
-                homework[ i ] = new Homework(
-                    homeworkBody[ i ].id,
-                    homeworkBody[ i ].title,
-                    DateTime.ParseExact(homeworkBody[ i ].start, "yyyy-MM-dd HH:mm:ss", null),
-                    DateTime.ParseExact(homeworkBody[ i ].end, "yyyy-MM-dd HH:mm:ss", null),
-                    homeworkBody[ i ].allDay,
-                    DateTime.ParseExact(homeworkBody[ i ].data_inserimento, "dd-MM-yyyy HH:mm:ss", null),
-                    homeworkBody[ i ].autore_desc,
-                    homeworkBody[ i ].nota_2);
+                Homework[] homework = new Homework[homeworkBody.Length];
+                for (int i = 0; i < homeworkBody.Length; i++)
+                {
+                    homework[i] = new Homework(
+                        homeworkBody[i].id,
+                        homeworkBody[i].title,
+                        DateTime.ParseExact(homeworkBody[i].start, "yyyy-MM-dd HH:mm:ss", null),
+                        DateTime.ParseExact(homeworkBody[i].end, "yyyy-MM-dd HH:mm:ss", null),
+                        homeworkBody[i].allDay,
+                        DateTime.ParseExact(homeworkBody[i].data_inserimento, "dd-MM-yyyy HH:mm:ss", null),
+                        homeworkBody[i].autore_desc,
+                        homeworkBody[i].nota_2);
+                }
+                return homework;
             }
-            return homework;
+            else return null;
         }
     }
 }
