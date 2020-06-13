@@ -3,6 +3,9 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>ClassevivaNet</RootNamespace>
+    <Version>1.0.1</Version>
+    <Authors>Daniel</Authors>
+    <Product>API wrapper for Classeviva</Product>
   </PropertyGroup>
 
   <ItemGroup>
