@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+
+using System;
 
 namespace ClassevivaNet
 {
@@ -7,46 +9,37 @@ namespace ClassevivaNet
         /// <summary>
         /// ID of the assignment
         /// </summary>
-        public string Id { get; }
+        [JsonProperty("evtId")]
+        public string Id { get; set; }
         /// <summary>
         /// Title of the assignment
         /// </summary>
-        public string Title { get; }
+        [JsonProperty("subjectDesc")]
+        public string Title { get; set; }
         /// <summary>
         /// Date on which the assignment started
         /// </summary>
-        public DateTime StartDate { get; }
+        [JsonProperty("evtDatetimeBegin")]
+        public DateTime StartDate { get; set; }
         /// <summary>
         /// Date on which the assignment ended
         /// </summary>
-        public DateTime EndDate { get; }
+        [JsonProperty("evtDatetimeEnd")]
+        public DateTime EndDate { get; set; }
         /// <summary>
         /// Whether the assignment is for the whole day
         /// </summary>
-        public bool IsAllDay { get; }
-        /// <summary>
-        /// The date on which the assignment was created
-        /// </summary>
-        public DateTime CreationDate { get; }
+        [JsonProperty("isFullDay")]
+        public bool IsAllDay { get; set; }
         /// <summary>
         /// Author of the assignment
         /// </summary>
-        public string Author { get; }
+        [JsonProperty("authorName")]
+        public string Author { get; set; }
         /// <summary>
         /// Content of the assignment
         /// </summary>
-        public string Content { get; }
-
-        public Homework(string id, string title, DateTime startDate, DateTime endDate, bool isAllDay, DateTime creationDate, string author, string content)
-        {
-            Id = id;
-            Title = title;
-            StartDate = startDate;
-            EndDate = endDate;
-            IsAllDay = isAllDay;
-            CreationDate = creationDate;
-            Author = author;
-            Content = content;
-        }
+        [JsonProperty("notes")]
+        public string Content { get; set; }
     }
 }

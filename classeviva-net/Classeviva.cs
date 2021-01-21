@@ -14,18 +14,33 @@ namespace ClassevivaNet
 {
     public class Classeviva
     {
+        private const string DateFormat = "yyyyMMdd";
+
         private const string ApplicationJsonContentType = "application/json";
         private const string BaseUrl = "https://web.spaggiari.eu/rest/v1";
 
-        private const string LoginPath = "/auth/login";
+        private const string LoginPath = "/auth/login/";
+        private const string HomeworkPath = "/students/{0}/agenda/all/";
+
+        private readonly StudentInfo _studentInfo;
 
         private HttpClient _http = new HttpClient();
 
-        private Classeviva(StudentInfo responseBody)
+        public bool IsValid
         {
+            get
+            {
+                return (this._studentInfo.ExpireTime - this._studentInfo.LoggedIn).TotalMinutes <= 90;
+            }
+        }
 
-            _http.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36");
+        private Classeviva(StudentInfo studentInfo)
+        {
+            this._studentInfo = studentInfo;
 
+            _http.DefaultRequestHeaders.Add("User-Agent", "zorro/1.0");
+            _http.DefaultRequestHeaders.Add("Z-Dev-Apikey", "+zorro+");
+            _http.DefaultRequestHeaders.Add("Z-Auth-Token", studentInfo.Token);
         }
 
         /// <summary>
@@ -33,8 +48,9 @@ namespace ClassevivaNet
         /// </summary>
         /// <param name="email">The user email used to login</param>
         /// <param name="password">The user password</param>
+        /// <param name="reconnect">If true, will automatically reconnect if the token expires</param>
         /// <returns>A Classeviva object</returns>
-        public static async Task<Classeviva> LoginAsync(string email, string password)
+        public static async Task<Classeviva> LoginAsync(string email, string password, bool reconnect)
         {
             HttpClient client = new HttpClient();
 
@@ -106,29 +122,12 @@ namespace ClassevivaNet
         /// <returns>An array of homework objects</returns>
         public async Task<Homework[]> GetHomeworkAsync(DateTime startDate, DateTime endDate)
         {
-            HttpResponseMessage msg = await _http.GetAsync(
-                $"https://web.spaggiari.eu/fml/app/default/agenda_studenti.php?ope=get_events&classe_id=&gruppo_id=&start=" +
-                startDate.Subtract(new DateTime(1970, 1, 1)).TotalSeconds.ToString() + "&end=" +
-                endDate.Subtract(new DateTime(1970, 1, 1)).TotalSeconds.ToString());
-            HomeworkBody[] homeworkBody = JsonConvert.DeserializeObject<HomeworkBody[]>(await msg.Content.ReadAsStringAsync());
-            if (homeworkBody != null)
-            {
-                Homework[] homework = new Homework[homeworkBody.Length];
-                for (int i = 0; i < homeworkBody.Length; i++)
-                {
-                    homework[i] = new Homework(
-                        homeworkBody[i].id,
-                        homeworkBody[i].title,
-                        DateTime.ParseExact(homeworkBody[i].start, "yyyy-MM-dd HH:mm:ss", null),
-                        DateTime.ParseExact(homeworkBody[i].end, "yyyy-MM-dd HH:mm:ss", null),
-                        homeworkBody[i].allDay,
-                        DateTime.ParseExact(homeworkBody[i].data_inserimento, "dd-MM-yyyy HH:mm:ss", null),
-                        homeworkBody[i].autore_desc,
-                        homeworkBody[i].nota_2);
-                }
-                return homework;
-            }
-            else return null;
+            HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(HomeworkPath, _studentInfo.GetFormattedToken()) + 
+                startDate.ToString(DateFormat) + "/" + endDate.ToString(DateFormat)
+                );
+            msg.EnsureSuccessStatusCode();
+
+            return JsonConvert.DeserializeObject<HomeworkResponse>(await msg.Content.ReadAsStringAsync()).Homework;
         }
     }
 }
