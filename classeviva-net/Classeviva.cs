@@ -6,39 +6,22 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using ClassevivaNet.Internal;
 using System.Linq;
+using System.Text;
+using System.Net.Mime;
+using System.Net.Http.Headers;
 
 namespace ClassevivaNet
 {
     public class Classeviva
     {
+        private const string ApplicationJsonContentType = "application/json";
         private const string BaseUrl = "https://web.spaggiari.eu/rest/v1";
 
         private const string LoginPath = "/auth/login";
+
         private HttpClient _http = new HttpClient();
 
-        /// <summary>
-        /// The student's name
-        /// </summary>
-        public string Name
-        {
-            get
-            {
-                return "temp";
-            }
-        }
-
-        /// <summary>
-        /// The student's surname
-        /// </summary>
-        public string Surname
-        {
-            get
-            {
-                return "temp";
-            }
-        }
-
-        private Classeviva(string cookieString, ResponseBody responseBody)
+        private Classeviva(StudentInfo responseBody)
         {
 
             _http.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36");
@@ -54,20 +37,22 @@ namespace ClassevivaNet
         public static async Task<Classeviva> LoginAsync(string email, string password)
         {
             HttpClient client = new HttpClient();
+
             Dictionary<string, string> loginValues = new Dictionary<string, string>
             {
                 {"uid", email },
                 {"pass", password }
             };
-            StringContent content = new StringContent(JsonConvert.SerializeObject(loginValues));
+
+            client.DefaultRequestHeaders.Add("User-Agent", "zorro/1.0");
+            client.DefaultRequestHeaders.Add("Z-Dev-Apikey", "+zorro+");
+
+            HttpContent content = new StringContent(JsonConvert.SerializeObject(loginValues), Encoding.UTF8, ApplicationJsonContentType);
             
             HttpResponseMessage msg = await client.PostAsync(BaseUrl + LoginPath, content);
+            msg.EnsureSuccessStatusCode();
 
-            return null;
-
-
-            //string[] cookies = (string[])msg.Headers.GetValues("Set-Cookie");
-            //ResponseBody body = JsonConvert.DeserializeObject<ResponseBody>(await msg.Content.ReadAsStringAsync());
+            return new Classeviva(JsonConvert.DeserializeObject<StudentInfo>(await msg.Content.ReadAsStringAsync()));
         }
 
         /// <summary>
