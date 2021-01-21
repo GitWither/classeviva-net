@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+
+using System;
 
 namespace ClassevivaNet
 {
@@ -7,40 +10,40 @@ namespace ClassevivaNet
         /// <summary>
         /// Teacher's comment on the grade
         /// </summary>
-        public string Comment { get; }
+        [JsonProperty("notesForFamily")]
+        public string Comment { get; set; }
+
+        /// <summary>
+        /// Decimal representation of the grade. 0 means the grade has no numeric representation
+        /// </summary>
+        [JsonProperty(propertyName:"decimalValue", NullValueHandling = NullValueHandling.Ignore)]
+        public double DecimalValue { get; set; }
+
+        /// <summary>
+        /// String representation of the grade
+        /// </summary>
+        [JsonProperty("displayValue")]
+        public string DisplayValue { get; set; }
+
         /// <summary>
         /// The date this grade was created
         /// </summary>
-        public DateTime Date { get; }
+        [JsonProperty("evtDate")]
+        public DateTime Date { get; set; }
         /// <summary>
         /// The subject this grade was gotten in
         /// </summary>
-        public string Subject { get; }
+        [JsonProperty("subjectDesc")]
+        public string Subject { get; set; }
         /// <summary>
         /// Type of the grade (oral, test, etc.) WARNING: Returns a string in Italian
         /// </summary>
-        public string Type { get; }
+        [JsonProperty("componentDesc")]
+        public string Type { get; set; }
         /// <summary>
-        /// Whether this grade counts towards the main average grade
+        /// Color of the grade. You can use this to determin whether the grade counts towards the average
         /// </summary>
-        public bool CountsTowardsAverage { get; }
-
-        public Grade (string comment, DateTime date, string subject, string type, bool countsTowardsAverage)
-        {
-            Comment = comment;
-            Date = date;
-            Subject = subject;
-            Type = type;
-            CountsTowardsAverage = countsTowardsAverage;
-        }
-
-        /// <summary>
-        /// Gets the string version of a grade
-        /// </summary>
-        /// <returns>A stringified version of the grade</returns>
-        public virtual string GetGradeString()
-        {
-            return string.Empty;
-        }
+        [JsonProperty("color")]
+        public string Color { get; set; }
     }
 }

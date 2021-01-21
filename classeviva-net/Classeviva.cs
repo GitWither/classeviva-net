@@ -21,6 +21,7 @@ namespace ClassevivaNet
 
         private const string LoginPath = "/auth/login/";
         private const string HomeworkPath = "/students/{0}/agenda/all/";
+        private const string GradesPath = "/students/{0}/grades/";
 
         private readonly StudentInfo _studentInfo;
 
@@ -100,8 +101,10 @@ namespace ClassevivaNet
         /// <returns>An array of Grade objects that contain grade data</returns>
         public async Task<Grade[]> GetGradesAsync()
         {
-            HttpResponseMessage msg = await _http.GetAsync("https://web.spaggiari.eu/cvv/app/default/genitori_note.php?filtro=tutto");
-            return null;
+            HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(GradesPath, _studentInfo.GetFormattedToken()));
+            msg.EnsureSuccessStatusCode();
+
+            return JsonConvert.DeserializeObject<GradesResponse>(await msg.Content.ReadAsStringAsync()).Grades;
         }
 
         /// <summary>
