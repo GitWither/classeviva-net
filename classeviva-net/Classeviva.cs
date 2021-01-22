@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Net.Mime;
 using System.Net.Http.Headers;
+using System.IO;
 
 namespace ClassevivaNet
 {
@@ -22,10 +23,21 @@ namespace ClassevivaNet
         private const string LoginPath = "/auth/login/";
         private const string HomeworkPath = "/students/{0}/agenda/all/";
         private const string GradesPath = "/students/{0}/grades/";
+        private const string LessonsPath = "/students/{0}/lessons/";
 
         private readonly StudentInfo _studentInfo;
 
         private HttpClient _http = new HttpClient();
+
+        public string FirstName
+        {
+            get => _studentInfo.FirstName;
+        }
+
+        public string LastName
+        {
+            get => _studentInfo.LastName;
+        }
 
         public bool IsValid
         {
@@ -115,6 +127,14 @@ namespace ClassevivaNet
         {
             HttpResponseMessage msg = await _http.GetAsync("https://web.spaggiari.eu/fml/app/default/didattica_genitori.php");
             return null;
+        }
+
+        public async Task<Lesson[]> GetLessonsAsync(DateTime date)
+        {
+            HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(LessonsPath, _studentInfo.GetFormattedToken()) + date.ToString(DateFormat));
+            msg.EnsureSuccessStatusCode();
+
+            return JsonConvert.DeserializeObject<LessonsResponse>(await msg.Content.ReadAsStringAsync()).Lessons;
         }
 
         /// <summary>
