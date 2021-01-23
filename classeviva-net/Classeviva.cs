@@ -24,10 +24,11 @@ namespace ClassevivaNet
         private const string HomeworkPath = "/students/{0}/agenda/all/";
         private const string GradesPath = "/students/{0}/grades/";
         private const string LessonsPath = "/students/{0}/lessons/";
+        private const string DocumentsPath = "/students/{0}/noticeboard";
 
         private readonly StudentInfo _studentInfo;
 
-        private HttpClient _http = new HttpClient();
+        private readonly HttpClient _http = new HttpClient();
 
         public string FirstName
         {
@@ -135,6 +136,23 @@ namespace ClassevivaNet
             msg.EnsureSuccessStatusCode();
 
             return JsonConvert.DeserializeObject<LessonsResponse>(await msg.Content.ReadAsStringAsync()).Lessons;
+        }
+
+        public async Task<Document[]> GetDocumentsAsync()
+        {
+            HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(DocumentsPath, _studentInfo.GetFormattedToken()));
+            msg.EnsureSuccessStatusCode();
+
+            return JsonConvert.DeserializeObject<DocumentsResponse>(await msg.Content.ReadAsStringAsync()).Documents;
+        }
+
+        public async Task<byte[]> GetDocumentDataAsync(Document document)
+        {
+            HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(DocumentsPath, _studentInfo.GetFormattedToken()) + "/attach/" + 
+                document.Code + "/" + document.Id);
+            msg.EnsureSuccessStatusCode();
+
+            return await msg.Content.ReadAsByteArrayAsync();
         }
 
         /// <summary>
