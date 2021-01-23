@@ -16,7 +16,7 @@ namespace ClassevivaNet
         /// <summary>
         /// Decimal representation of the grade. 0 means the grade has no numeric representation
         /// </summary>
-        [JsonProperty(propertyName:"decimalValue", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty("decimalValue", NullValueHandling = NullValueHandling.Ignore)]
         public double DecimalValue { get; set; }
 
         /// <summary>

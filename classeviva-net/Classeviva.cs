@@ -146,6 +146,7 @@ namespace ClassevivaNet
             return JsonConvert.DeserializeObject<DocumentsResponse>(await msg.Content.ReadAsStringAsync()).Documents;
         }
 
+
         public async Task<byte[]> GetDocumentDataAsync(Document document)
         {
             HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(DocumentsPath, _studentInfo.GetFormattedToken()) + "/attach/" + 
