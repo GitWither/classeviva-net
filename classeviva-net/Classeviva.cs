@@ -10,6 +10,7 @@ using System.Text;
 using System.Net.Mime;
 using System.Net.Http.Headers;
 using System.IO;
+using ClassevivaNet.Objects;
 
 namespace ClassevivaNet
 {
@@ -25,6 +26,7 @@ namespace ClassevivaNet
         private const string GradesPath = "/students/{0}/grades/";
         private const string LessonsPath = "/students/{0}/lessons/";
         private const string DocumentsPath = "/students/{0}/noticeboard";
+        private const string DidacticsPath = "/students/{0}/didactics";
 
         private readonly StudentInfo _studentInfo;
 
@@ -74,7 +76,7 @@ namespace ClassevivaNet
                 {"pass", password }
             };
 
-            client.DefaultRequestHeaders.Add("User-Agent", "zorro/1.0");
+            //client.DefaultRequestHeaders.Add("User-Agent", "zorro/1.0");
             client.DefaultRequestHeaders.Add("Z-Dev-Apikey", "+zorro+");
 
             HttpContent content = new StringContent(JsonConvert.SerializeObject(loginValues), Encoding.UTF8, ApplicationJsonContentType);
@@ -154,6 +156,18 @@ namespace ClassevivaNet
             msg.EnsureSuccessStatusCode();
 
             return await msg.Content.ReadAsByteArrayAsync();
+        }
+
+        public async Task<Content[]> GetDidacticsAsync()
+        {
+            HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(DidacticsPath, _studentInfo.GetFormattedToken()));
+            msg.EnsureSuccessStatusCode();
+
+            Console.WriteLine(await msg.Content.ReadAsStringAsync());
+
+            DidacticsResponse test = JsonConvert.DeserializeObject<DidacticsResponse>(await msg.Content.ReadAsStringAsync());
+
+            return null;
         }
 
         /// <summary>
