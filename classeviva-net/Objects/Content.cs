@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace ClassevivaNet.Objects
+namespace ClassevivaNet
 {
     public class Content
     {
@@ -18,5 +18,7 @@ namespace ClassevivaNet.Objects
         public string ObjectType { get; set; }
         [JsonProperty("shareDT")]
         public DateTime UploadDate { get; set; }
+        public string TeacherName { get; set; }
+        public string FolderName { get; set; }
     }
 }

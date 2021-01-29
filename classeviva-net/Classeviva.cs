@@ -7,10 +7,6 @@ using Newtonsoft.Json;
 using ClassevivaNet.Internal;
 using System.Linq;
 using System.Text;
-using System.Net.Mime;
-using System.Net.Http.Headers;
-using System.IO;
-using ClassevivaNet.Objects;
 
 namespace ClassevivaNet
 {
@@ -76,7 +72,7 @@ namespace ClassevivaNet
                 {"pass", password }
             };
 
-            //client.DefaultRequestHeaders.Add("User-Agent", "zorro/1.0");
+            client.DefaultRequestHeaders.Add("User-Agent", "zorro/1.0");
             client.DefaultRequestHeaders.Add("Z-Dev-Apikey", "+zorro+");
 
             HttpContent content = new StringContent(JsonConvert.SerializeObject(loginValues), Encoding.UTF8, ApplicationJsonContentType);
@@ -122,16 +118,6 @@ namespace ClassevivaNet
             return JsonConvert.DeserializeObject<GradesResponse>(await msg.Content.ReadAsStringAsync()).Grades;
         }
 
-        /// <summary>
-        /// Returns all the student's school material files
-        /// </summary>
-        /// <returns>An array of MaterialFile objects that contain all the file data</returns>
-        public async Task<MaterialFile[]> GetFilesAsync()
-        {
-            HttpResponseMessage msg = await _http.GetAsync("https://web.spaggiari.eu/fml/app/default/didattica_genitori.php");
-            return null;
-        }
-
         public async Task<Lesson[]> GetLessonsAsync(DateTime date)
         {
             HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(LessonsPath, _studentInfo.GetFormattedToken()) + date.ToString(DateFormat));
@@ -163,11 +149,31 @@ namespace ClassevivaNet
             HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(DidacticsPath, _studentInfo.GetFormattedToken()));
             msg.EnsureSuccessStatusCode();
 
-            Console.WriteLine(await msg.Content.ReadAsStringAsync());
+            DidacticsResponse didactics = JsonConvert.DeserializeObject<DidacticsResponse>(await msg.Content.ReadAsStringAsync());
 
-            DidacticsResponse test = JsonConvert.DeserializeObject<DidacticsResponse>(await msg.Content.ReadAsStringAsync());
+            List<Content> contents = new List<Content>();
+            foreach (Teacher teacher in didactics.Didactics)
+            {
+                foreach (Folder folder in teacher.Folders)
+                {
+                    foreach (Content content in folder.Contents)
+                    {
+                        content.FolderName = folder.FolderName;
+                        content.TeacherName = teacher.TeacherName;
+                        contents.Add(content);
+                    }
+                }
+            }
 
-            return null;
+            return contents.ToArray();
+        }
+
+        public async Task<byte[]> GetDidacticsDataAsync(Content content)
+        {
+            HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(DidacticsPath, _studentInfo.GetFormattedToken()) + "/item/" + content.ContentId);
+            msg.EnsureSuccessStatusCode();
+
+            return await msg.Content.ReadAsByteArrayAsync();
         }
 
         /// <summary>
