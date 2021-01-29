@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using HtmlAgilityPack;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using ClassevivaNet.Internal;
@@ -23,6 +22,7 @@ namespace ClassevivaNet
         private const string LessonsPath = "/students/{0}/lessons/";
         private const string DocumentsPath = "/students/{0}/noticeboard";
         private const string DidacticsPath = "/students/{0}/didactics";
+        private const string CardsPath = "/students/{0}/cards";
 
         private readonly StudentInfo _studentInfo;
 
@@ -87,23 +87,27 @@ namespace ClassevivaNet
         /// Gets the student's school name
         /// </summary>
         /// <returns>A string containing the school name</returns>
-        public async Task<string> GetSchoolAsync()
+        public async Task<string> GetSchoolNameAsync()
         {
-
-            HttpResponseMessage msg = await _http.GetAsync("https://web.spaggiari.eu/home/app/default/menu_webinfoschool_genitori.php");
-            //temp
-            return null;
+            HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(CardsPath, _studentInfo.GetFormattedToken()));
+            msg.EnsureSuccessStatusCode();
+            return JsonConvert.DeserializeObject<CardsReponse>(await msg.Content.ReadAsStringAsync()).Cards[0].SchoolName;
         }
 
-        /// <summary>
-        /// Gets the student's full name WARNING: This method is slower than the Name and the Surname properties, but is included for consisency
-        /// </summary>
-        /// <returns>A string containing the students full name</returns>
-        public async Task<string> GetFullNameAsync()
+        public async Task<string> GetSchoolTypeAsync()
         {
 
-            HttpResponseMessage msg = await _http.GetAsync("https://web.spaggiari.eu/home/app/default/menu_webinfoschool_genitori.php");
-            return null;
+            HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(CardsPath, _studentInfo.GetFormattedToken()));
+            msg.EnsureSuccessStatusCode();
+            return JsonConvert.DeserializeObject<CardsReponse>(await msg.Content.ReadAsStringAsync()).Cards[0].SchoolType;
+        }
+
+        public async Task<string> GetFiscalCodeAsync()
+        {
+
+            HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(CardsPath, _studentInfo.GetFormattedToken()));
+            msg.EnsureSuccessStatusCode();
+            return JsonConvert.DeserializeObject<CardsReponse>(await msg.Content.ReadAsStringAsync()).Cards[0].FiscalCode;
         }
 
         /// <summary>
