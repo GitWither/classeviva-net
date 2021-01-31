@@ -29,16 +29,25 @@ namespace ClassevivaNet
 
         private readonly HttpClient _http = new HttpClient();
 
+        /// <summary>
+        /// First name of the student
+        /// </summary>
         public string FirstName
         {
             get => _studentInfo.FirstName;
         }
 
+        /// <summary>
+        /// Last name of the student
+        /// </summary>
         public string LastName
         {
             get => _studentInfo.LastName;
         }
 
+        /// <summary>
+        /// Returns true if the current connection is still valid.
+        /// </summary>
         public bool IsValid
         {
             get
@@ -47,6 +56,9 @@ namespace ClassevivaNet
             }
         }
 
+        /// <summary>
+        /// Returns true if the instance was set to reconnect
+        /// </summary>
         public bool Reconnect { get; private set; }
 
         private Classeviva(StudentInfo studentInfo, bool reconnect)
@@ -114,7 +126,7 @@ namespace ClassevivaNet
         /// <returns>A string containing the school name</returns>
         public async Task<string> GetSchoolNameAsync()
         {
-            if (!IsValid) await ReconnectAsync();
+            if (!IsValid && Reconnect) await ReconnectAsync();
 
             using (HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(CardsPath, _studentInfo.GetFormattedToken())))
             {
@@ -123,9 +135,13 @@ namespace ClassevivaNet
             }
         }
 
+        /// <summary>
+        /// Gets the student's school type
+        /// </summary>
+        /// <returns>A string containing the student's school type</returns>
         public async Task<string> GetSchoolTypeAsync()
         {
-            if (!IsValid) await ReconnectAsync();
+            if (!IsValid && Reconnect) await ReconnectAsync();
 
             using (HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(CardsPath, _studentInfo.GetFormattedToken())))
             {
@@ -134,9 +150,13 @@ namespace ClassevivaNet
             }
         }
 
+        /// <summary>
+        /// Gets the student's fiscal code
+        /// </summary>
+        /// <returns>A string containing the student's fiscal code</returns>
         public async Task<string> GetFiscalCodeAsync()
         {
-            if (!IsValid) await ReconnectAsync();
+            if (!IsValid && Reconnect) await ReconnectAsync();
 
             using (HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(CardsPath, _studentInfo.GetFormattedToken())))
             {
@@ -151,7 +171,7 @@ namespace ClassevivaNet
         /// <returns>An array of Grade objects that contain grade data</returns>
         public async Task<Grade[]> GetGradesAsync()
         {
-            if (!IsValid) await ReconnectAsync();
+            if (!IsValid && Reconnect) await ReconnectAsync();
 
             using (HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(GradesPath, _studentInfo.GetFormattedToken())))
             {
@@ -161,9 +181,14 @@ namespace ClassevivaNet
             }
         }
 
+        /// <summary>
+        /// Returns information on lessons on specific date
+        /// </summary>
+        /// <param name="date">Date you want to analyze</param>
+        /// <returns>An array of lessons that happened on a specific date</returns>
         public async Task<Lesson[]> GetLessonsAsync(DateTime date)
         {
-            if (!IsValid) await ReconnectAsync();
+            if (!IsValid && Reconnect) await ReconnectAsync();
 
             using (HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(LessonsPath, _studentInfo.GetFormattedToken()) + date.ToString(DateFormat)))
             {
@@ -173,9 +198,13 @@ namespace ClassevivaNet
             }
         }
 
+        /// <summary>
+        /// Gets an array of documents
+        /// </summary>
+        /// <returns>An array of Document objects</returns>
         public async Task<Document[]> GetDocumentsAsync()
         {
-            if (!IsValid) await ReconnectAsync();
+            if (!IsValid && Reconnect) await ReconnectAsync();
 
             using (HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(DocumentsPath, _studentInfo.GetFormattedToken())))
             {
@@ -185,10 +214,14 @@ namespace ClassevivaNet
             }
         }
 
-
+        /// <summary>
+        /// Gets the data of a document
+        /// </summary>
+        /// <param name="document">The document you need the data of</param>
+        /// <returns>A buffer of bytes that represents the information stored</returns>
         public async Task<byte[]> GetDocumentDataAsync(Document document)
         {
-            if (!IsValid) await ReconnectAsync();
+            if (!IsValid & Reconnect) await ReconnectAsync();
 
 
             using (HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(DocumentsPath, _studentInfo.GetFormattedToken()) + "/attach/" +
@@ -200,6 +233,10 @@ namespace ClassevivaNet
             }
         }
 
+        /// <summary>
+        /// Gets an array of didactic items
+        /// </summary>
+        /// <returns>An array containing Content objects</returns>
         public async Task<Content[]> GetDidacticsAsync()
         {
             if (!IsValid) await ReconnectAsync();
@@ -228,6 +265,11 @@ namespace ClassevivaNet
             }
         }
 
+        /// <summary>
+        /// Gets the data of a didactics piece of content
+        /// </summary>
+        /// <param name="content">Content you need to get the data for</param>
+        /// <returns>A buffer of bytes that represents the information stored</returns>
         public async Task<byte[]> GetDidacticsDataAsync(Content content)
         {
             if (!IsValid) await ReconnectAsync();
