@@ -116,27 +116,33 @@ namespace ClassevivaNet
         {
             if (!IsValid) await ReconnectAsync();
 
-            HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(CardsPath, _studentInfo.GetFormattedToken()));
-            msg.EnsureSuccessStatusCode();
-            return JsonConvert.DeserializeObject<CardsReponse>(await msg.Content.ReadAsStringAsync()).Cards[0].SchoolName;
+            using (HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(CardsPath, _studentInfo.GetFormattedToken())))
+            {
+                msg.EnsureSuccessStatusCode();
+                return JsonConvert.DeserializeObject<CardsReponse>(await msg.Content.ReadAsStringAsync()).Cards[0].SchoolName;
+            }
         }
 
         public async Task<string> GetSchoolTypeAsync()
         {
             if (!IsValid) await ReconnectAsync();
 
-            HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(CardsPath, _studentInfo.GetFormattedToken()));
-            msg.EnsureSuccessStatusCode();
-            return JsonConvert.DeserializeObject<CardsReponse>(await msg.Content.ReadAsStringAsync()).Cards[0].SchoolType;
+            using (HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(CardsPath, _studentInfo.GetFormattedToken())))
+            {
+                msg.EnsureSuccessStatusCode();
+                return JsonConvert.DeserializeObject<CardsReponse>(await msg.Content.ReadAsStringAsync()).Cards[0].SchoolType;
+            }
         }
 
         public async Task<string> GetFiscalCodeAsync()
         {
             if (!IsValid) await ReconnectAsync();
 
-            HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(CardsPath, _studentInfo.GetFormattedToken()));
-            msg.EnsureSuccessStatusCode();
-            return JsonConvert.DeserializeObject<CardsReponse>(await msg.Content.ReadAsStringAsync()).Cards[0].FiscalCode;
+            using (HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(CardsPath, _studentInfo.GetFormattedToken())))
+            {
+                msg.EnsureSuccessStatusCode();
+                return JsonConvert.DeserializeObject<CardsReponse>(await msg.Content.ReadAsStringAsync()).Cards[0].FiscalCode;
+            }
         }
 
         /// <summary>
@@ -147,30 +153,36 @@ namespace ClassevivaNet
         {
             if (!IsValid) await ReconnectAsync();
 
-            HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(GradesPath, _studentInfo.GetFormattedToken()));
-            msg.EnsureSuccessStatusCode();
+            using (HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(GradesPath, _studentInfo.GetFormattedToken())))
+            {
+                msg.EnsureSuccessStatusCode();
 
-            return JsonConvert.DeserializeObject<GradesResponse>(await msg.Content.ReadAsStringAsync()).Grades;
+                return JsonConvert.DeserializeObject<GradesResponse>(await msg.Content.ReadAsStringAsync()).Grades;
+            }
         }
 
         public async Task<Lesson[]> GetLessonsAsync(DateTime date)
         {
             if (!IsValid) await ReconnectAsync();
 
-            HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(LessonsPath, _studentInfo.GetFormattedToken()) + date.ToString(DateFormat));
-            msg.EnsureSuccessStatusCode();
+            using (HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(LessonsPath, _studentInfo.GetFormattedToken()) + date.ToString(DateFormat)))
+            {
+                msg.EnsureSuccessStatusCode();
 
-            return JsonConvert.DeserializeObject<LessonsResponse>(await msg.Content.ReadAsStringAsync()).Lessons;
+                return JsonConvert.DeserializeObject<LessonsResponse>(await msg.Content.ReadAsStringAsync()).Lessons;
+            }
         }
 
         public async Task<Document[]> GetDocumentsAsync()
         {
             if (!IsValid) await ReconnectAsync();
 
-            HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(DocumentsPath, _studentInfo.GetFormattedToken()));
-            msg.EnsureSuccessStatusCode();
+            using (HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(DocumentsPath, _studentInfo.GetFormattedToken())))
+            {
+                msg.EnsureSuccessStatusCode();
 
-            return JsonConvert.DeserializeObject<DocumentsResponse>(await msg.Content.ReadAsStringAsync()).Documents;
+                return JsonConvert.DeserializeObject<DocumentsResponse>(await msg.Content.ReadAsStringAsync()).Documents;
+            }
         }
 
 
@@ -178,47 +190,54 @@ namespace ClassevivaNet
         {
             if (!IsValid) await ReconnectAsync();
 
-            HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(DocumentsPath, _studentInfo.GetFormattedToken()) + "/attach/" + 
-                document.Code + "/" + document.Id);
-            msg.EnsureSuccessStatusCode();
 
-            return await msg.Content.ReadAsByteArrayAsync();
+            using (HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(DocumentsPath, _studentInfo.GetFormattedToken()) + "/attach/" +
+                document.Code + "/" + document.Id))
+            {
+                msg.EnsureSuccessStatusCode();
+
+                return await msg.Content.ReadAsByteArrayAsync();
+            }
         }
 
         public async Task<Content[]> GetDidacticsAsync()
         {
             if (!IsValid) await ReconnectAsync();
 
-            HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(DidacticsPath, _studentInfo.GetFormattedToken()));
-            msg.EnsureSuccessStatusCode();
-
-            DidacticsResponse didactics = JsonConvert.DeserializeObject<DidacticsResponse>(await msg.Content.ReadAsStringAsync());
-
-            List<Content> contents = new List<Content>();
-            foreach (Teacher teacher in didactics.Didactics)
+            using (HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(DidacticsPath, _studentInfo.GetFormattedToken())))
             {
-                foreach (Folder folder in teacher.Folders)
+                msg.EnsureSuccessStatusCode();
+
+                DidacticsResponse didactics = JsonConvert.DeserializeObject<DidacticsResponse>(await msg.Content.ReadAsStringAsync());
+
+                List<Content> contents = new List<Content>();
+                foreach (Teacher teacher in didactics.Didactics)
                 {
-                    foreach (Content content in folder.Contents)
+                    foreach (Folder folder in teacher.Folders)
                     {
-                        content.FolderName = folder.FolderName;
-                        content.TeacherName = teacher.TeacherName;
-                        contents.Add(content);
+                        foreach (Content content in folder.Contents)
+                        {
+                            content.FolderName = folder.FolderName;
+                            content.TeacherName = teacher.TeacherName;
+                            contents.Add(content);
+                        }
                     }
                 }
-            }
 
-            return contents.ToArray();
+                return contents.ToArray();
+            }
         }
 
         public async Task<byte[]> GetDidacticsDataAsync(Content content)
         {
             if (!IsValid) await ReconnectAsync();
 
-            HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(DidacticsPath, _studentInfo.GetFormattedToken()) + "/item/" + content.ContentId);
-            msg.EnsureSuccessStatusCode();
+            using (HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(DidacticsPath, _studentInfo.GetFormattedToken()) + "/item/" + content.ContentId))
+            {
+                msg.EnsureSuccessStatusCode();
 
-            return await msg.Content.ReadAsByteArrayAsync();
+                return await msg.Content.ReadAsByteArrayAsync();
+            }
         }
 
         /// <summary>
@@ -231,12 +250,13 @@ namespace ClassevivaNet
         {
             if (!IsValid) await ReconnectAsync();
 
-            HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(HomeworkPath, _studentInfo.GetFormattedToken()) + 
-                startDate.ToString(DateFormat) + "/" + endDate.ToString(DateFormat)
-                );
-            msg.EnsureSuccessStatusCode();
+            using (HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(HomeworkPath, _studentInfo.GetFormattedToken()) +
+                startDate.ToString(DateFormat) + "/" + endDate.ToString(DateFormat)))
+            {
+                msg.EnsureSuccessStatusCode();
 
-            return JsonConvert.DeserializeObject<HomeworkResponse>(await msg.Content.ReadAsStringAsync()).Homework;
+                return JsonConvert.DeserializeObject<HomeworkResponse>(await msg.Content.ReadAsStringAsync()).Homework;
+            }
         }
     }
 }
