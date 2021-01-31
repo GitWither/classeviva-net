@@ -19,6 +19,8 @@ namespace ClassevivaNet.Internal
         public DateTime LoggedIn { get; set; }
         [JsonProperty("expire")]
         public DateTime ExpireTime { get; set; }
+        public string Email { get; set; }
+        public string Password { get; set; }
 
         public string GetFormattedToken()
         {

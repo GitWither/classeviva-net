@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using ClassevivaNet.Internal;
 using System.Linq;
 using System.Text;
+using System.Security.Cryptography;
 
 namespace ClassevivaNet
 {
@@ -24,7 +25,7 @@ namespace ClassevivaNet
         private const string DidacticsPath = "/students/{0}/didactics";
         private const string CardsPath = "/students/{0}/cards";
 
-        private readonly StudentInfo _studentInfo;
+        private StudentInfo _studentInfo;
 
         private readonly HttpClient _http = new HttpClient();
 
@@ -46,13 +47,53 @@ namespace ClassevivaNet
             }
         }
 
-        private Classeviva(StudentInfo studentInfo)
+        public bool Reconnect { get; private set; }
+
+        private Classeviva(StudentInfo studentInfo, bool reconnect)
         {
             this._studentInfo = studentInfo;
+            this.Reconnect = reconnect;
 
             _http.DefaultRequestHeaders.Add("User-Agent", "zorro/1.0");
             _http.DefaultRequestHeaders.Add("Z-Dev-Apikey", "+zorro+");
             _http.DefaultRequestHeaders.Add("Z-Auth-Token", studentInfo.Token);
+        }
+
+        private static async Task<StudentInfo> LoginAsync(string email, string password)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                Dictionary<string, string> loginValues = new Dictionary<string, string>
+                {
+                    {"uid", email },
+                    {"pass", password }
+                };
+
+                client.DefaultRequestHeaders.Add("User-Agent", "zorro/1.0");
+                client.DefaultRequestHeaders.Add("Z-Dev-Apikey", "+zorro+");
+
+                using (HttpContent content = new StringContent(JsonConvert.SerializeObject(loginValues), Encoding.UTF8, ApplicationJsonContentType))
+                {
+                    using (HttpResponseMessage msg = await client.PostAsync(BaseUrl + LoginPath, content))
+                    {
+                        msg.EnsureSuccessStatusCode();
+
+                        StudentInfo info = JsonConvert.DeserializeObject<StudentInfo>(await msg.Content.ReadAsStringAsync());
+
+                        info.Email = email;
+                        info.Password = password;
+
+                        return info;
+                    }
+                }
+            }
+        }
+
+        private async Task ReconnectAsync()
+        {
+            _studentInfo = await LoginAsync(_studentInfo.Email, _studentInfo.Password);
+
+            _http.DefaultRequestHeaders.Add("Z-Auth-Token", _studentInfo.Token);
         }
 
         /// <summary>
@@ -64,23 +105,7 @@ namespace ClassevivaNet
         /// <returns>A Classeviva object</returns>
         public static async Task<Classeviva> LoginAsync(string email, string password, bool reconnect)
         {
-            HttpClient client = new HttpClient();
-
-            Dictionary<string, string> loginValues = new Dictionary<string, string>
-            {
-                {"uid", email },
-                {"pass", password }
-            };
-
-            client.DefaultRequestHeaders.Add("User-Agent", "zorro/1.0");
-            client.DefaultRequestHeaders.Add("Z-Dev-Apikey", "+zorro+");
-
-            HttpContent content = new StringContent(JsonConvert.SerializeObject(loginValues), Encoding.UTF8, ApplicationJsonContentType);
-            
-            HttpResponseMessage msg = await client.PostAsync(BaseUrl + LoginPath, content);
-            msg.EnsureSuccessStatusCode();
-
-            return new Classeviva(JsonConvert.DeserializeObject<StudentInfo>(await msg.Content.ReadAsStringAsync()));
+            return new Classeviva(await LoginAsync(email, password), reconnect);
         }
 
         /// <summary>
@@ -89,6 +114,8 @@ namespace ClassevivaNet
         /// <returns>A string containing the school name</returns>
         public async Task<string> GetSchoolNameAsync()
         {
+            if (!IsValid) await ReconnectAsync();
+
             HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(CardsPath, _studentInfo.GetFormattedToken()));
             msg.EnsureSuccessStatusCode();
             return JsonConvert.DeserializeObject<CardsReponse>(await msg.Content.ReadAsStringAsync()).Cards[0].SchoolName;
@@ -96,6 +123,7 @@ namespace ClassevivaNet
 
         public async Task<string> GetSchoolTypeAsync()
         {
+            if (!IsValid) await ReconnectAsync();
 
             HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(CardsPath, _studentInfo.GetFormattedToken()));
             msg.EnsureSuccessStatusCode();
@@ -104,6 +132,7 @@ namespace ClassevivaNet
 
         public async Task<string> GetFiscalCodeAsync()
         {
+            if (!IsValid) await ReconnectAsync();
 
             HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(CardsPath, _studentInfo.GetFormattedToken()));
             msg.EnsureSuccessStatusCode();
@@ -116,6 +145,8 @@ namespace ClassevivaNet
         /// <returns>An array of Grade objects that contain grade data</returns>
         public async Task<Grade[]> GetGradesAsync()
         {
+            if (!IsValid) await ReconnectAsync();
+
             HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(GradesPath, _studentInfo.GetFormattedToken()));
             msg.EnsureSuccessStatusCode();
 
@@ -124,6 +155,8 @@ namespace ClassevivaNet
 
         public async Task<Lesson[]> GetLessonsAsync(DateTime date)
         {
+            if (!IsValid) await ReconnectAsync();
+
             HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(LessonsPath, _studentInfo.GetFormattedToken()) + date.ToString(DateFormat));
             msg.EnsureSuccessStatusCode();
 
@@ -132,6 +165,8 @@ namespace ClassevivaNet
 
         public async Task<Document[]> GetDocumentsAsync()
         {
+            if (!IsValid) await ReconnectAsync();
+
             HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(DocumentsPath, _studentInfo.GetFormattedToken()));
             msg.EnsureSuccessStatusCode();
 
@@ -141,6 +176,8 @@ namespace ClassevivaNet
 
         public async Task<byte[]> GetDocumentDataAsync(Document document)
         {
+            if (!IsValid) await ReconnectAsync();
+
             HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(DocumentsPath, _studentInfo.GetFormattedToken()) + "/attach/" + 
                 document.Code + "/" + document.Id);
             msg.EnsureSuccessStatusCode();
@@ -150,6 +187,8 @@ namespace ClassevivaNet
 
         public async Task<Content[]> GetDidacticsAsync()
         {
+            if (!IsValid) await ReconnectAsync();
+
             HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(DidacticsPath, _studentInfo.GetFormattedToken()));
             msg.EnsureSuccessStatusCode();
 
@@ -174,6 +213,8 @@ namespace ClassevivaNet
 
         public async Task<byte[]> GetDidacticsDataAsync(Content content)
         {
+            if (!IsValid) await ReconnectAsync();
+
             HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(DidacticsPath, _studentInfo.GetFormattedToken()) + "/item/" + content.ContentId);
             msg.EnsureSuccessStatusCode();
 
@@ -188,6 +229,8 @@ namespace ClassevivaNet
         /// <returns>An array of homework objects</returns>
         public async Task<Homework[]> GetHomeworkAsync(DateTime startDate, DateTime endDate)
         {
+            if (!IsValid) await ReconnectAsync();
+
             HttpResponseMessage msg = await _http.GetAsync(BaseUrl + string.Format(HomeworkPath, _studentInfo.GetFormattedToken()) + 
                 startDate.ToString(DateFormat) + "/" + endDate.ToString(DateFormat)
                 );
